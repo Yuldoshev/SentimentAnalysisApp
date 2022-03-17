@@ -1,5 +1,6 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
-import 'package:flutter/widgets.dart';
 import 'package:sentiment_analysis/model/model.dart';
 
 class ApiService {
@@ -8,12 +9,21 @@ class ApiService {
       "https://twinword-sentiment-analysis.p.rapidapi.com/analyze/";
   static const Map<String, String> _header = {
     'content-type': 'application/x-www-form-urlencoded',
-    'x-rapidapi-host': 'twinword-sentiment-analysis.p.rapidapi.com',
+    'x-rapidapi-host': 'twinword-sentiment-analysis-v1.p.rapidapi.com',
     'x-rapidapi-key': _api_keys,
     'useQueryString': 'true',
   };
 
   Future<SentAna> post({required Map<String, String> query}) async {
-    final response = await Dio().post(_baseUrl, queryParameters: _header);
+    final response =
+        await Dio().post(_baseUrl, queryParameters: _header, data: query);
+
+    if (response.statusCode == 200) {
+      print("success: ${response.data}");
+
+      return SentAna.fromJson(jsonDecode(response.data));
+    } else {
+      throw Exception("Failed load json data");
+    }
   }
 }

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sentiment_analysis/api/api.dart';
+import 'package:sentiment_analysis/model/model.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -10,6 +12,9 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   bool _loading = true;
   final myController = TextEditingController();
+
+  ApiService apiService = ApiService();
+  Future<SentAna>? analysis;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -23,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -38,11 +43,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   fontSize: 28,
                 ),
               ),
-              SizedBox(
+              const SizedBox(
                 height: 40,
               ),
               Container(
-                padding: EdgeInsets.all(30),
+                padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(30),
@@ -65,18 +70,18 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     TextField(
                                       controller: myController,
-                                      style: TextStyle(
+                                      style: const TextStyle(
                                         color: Colors.black,
                                         fontWeight: FontWeight.w600,
                                       ),
-                                      decoration: InputDecoration(
+                                      decoration: const InputDecoration(
                                           labelStyle: TextStyle(
                                             color: Colors.black,
                                             fontSize: 21,
                                           ),
                                           labelText: "Enter a search term: "),
                                     ),
-                                    SizedBox(
+                                    const SizedBox(
                                       height: 30,
                                     ),
                                   ],
@@ -85,12 +90,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             : Container(),
                       ),
                     ),
-                    Container(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width,
                       child: Column(
                         children: [
                           GestureDetector(
-                            onTap: () {},
+                            onTap: () {
+                              setState(() {
+                                //_loading = false;
+                                print(myController.text);
+                                analysis = apiService
+                                    .post(query: {'text': myController.text});
+                              });
+                            },
                             child: Container(
                               width: MediaQuery.of(context).size.width - 100,
                               alignment: Alignment.center,
@@ -106,7 +118,28 @@ class _HomeScreenState extends State<HomeScreen> {
                                     color: Colors.white, fontSize: 18),
                               ),
                             ),
-                          )
+                          ),
+                          SizedBox(
+                            height: 20,
+                          ),
+                          FutureBuilder<SentAna?>(
+                            future: analysis,
+                            builder: (context, snapshot) {
+                              if (snapshot.hasData) {
+                                print(snapshot.data!.emotios!);
+                                return Text(
+                                  "Prediction is: " + snapshot.data!.emotios!,
+                                  style: TextStyle(
+                                    color: Colors.black,
+                                    fontSize: 29,
+                                  ),
+                                );
+                              } else if (snapshot.hasError) {
+                                return Text("${snapshot.hasError}");
+                              }
+                              return CircularProgressIndicator();
+                            },
+                          ),
                         ],
                       ),
                     ),
